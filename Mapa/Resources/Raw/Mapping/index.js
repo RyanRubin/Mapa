@@ -44,9 +44,11 @@ class App {
             })
         });
 
-        // this.addIcon(this.map.getView().getCenter());
-        this.addCircle(this.map.getView().getCenter(), 'red');
-        this.addCircle(ol.proj.fromLonLat([-81.495, 41.469]), 'green');
+        this.addIcon(this.map.getView().getCenter());
+        this.addCircle(ol.proj.fromLonLat([-81.496, 41.470]), 'red');
+        this.addLine(this.map.getView().getCenter(), ol.proj.fromLonLat([-81.496, 41.470]), 'red');
+        this.addCircle(ol.proj.fromLonLat([-81.495, 41.469]), 'yellow');
+        this.addLine(this.map.getView().getCenter(), ol.proj.fromLonLat([-81.495, 41.469]), 'yellow');
     }
 
     addIcon(coord) {
@@ -71,7 +73,7 @@ class App {
         });
         circleFeature.setStyle(new ol.style.Style({
             image: new ol.style.Circle({
-                radius: 10,
+                radius: 8,
                 fill: new ol.style.Fill({
                     color: color
                 })
@@ -79,6 +81,21 @@ class App {
         }));
 
         this.vectorSource.addFeature(circleFeature);
+    }
+
+    addLine(coord1, coord2, color) {
+        const lineFeature = new ol.Feature({
+            geometry: new ol.geom.LineString([coord1, coord2])
+        });
+        lineFeature.setStyle(new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: color,
+                width: 1.25,
+                lineDash: [5, 5]
+            })
+        }));
+
+        this.vectorSource.addFeature(lineFeature);
     }
 }
 
