@@ -44,7 +44,9 @@ class App {
             })
         });
 
-        this.addIcon(this.map.getView().getCenter());
+        // this.addIcon(this.map.getView().getCenter());
+        this.addCircle(this.map.getView().getCenter(), 'red');
+        this.addCircle(ol.proj.fromLonLat([-81.495, 41.469]), 'green');
     }
 
     addIcon(coord) {
@@ -61,6 +63,22 @@ class App {
         }));
 
         this.vectorSource.addFeature(iconFeature);
+    }
+
+    addCircle(coord, color) {
+        const circleFeature = new ol.Feature({
+            geometry: new ol.geom.Point(coord)
+        });
+        circleFeature.setStyle(new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 10,
+                fill: new ol.style.Fill({
+                    color: color
+                })
+            })
+        }));
+
+        this.vectorSource.addFeature(circleFeature);
     }
 }
 
