@@ -1,11 +1,18 @@
+using Mapa.Services;
+
 namespace Mapa;
 
 public partial class InteractiveMap : ContentView
 {
-	public InteractiveMap()
-	{
-		InitializeComponent();
+    public InteractiveMap()
+    {
+        InitializeComponent();
 
-		mapWebView.Source = "https://www.google.com/";
-	}
+        var httpServer = new HttpServer();
+        httpServer.Prefixes.Add("http://localhost:50000/");
+        httpServer.StaticFilesPath = Path.Combine(AppContext.BaseDirectory, "InteractiveMap");
+        httpServer.Start();
+
+        mapWebView.Source = "http://localhost:50000/";
+    }
 }
