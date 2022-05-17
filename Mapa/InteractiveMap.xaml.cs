@@ -9,10 +9,8 @@ public partial class InteractiveMap : ContentView
         InitializeComponent();
 
         var httpServer = new HttpServer();
-        httpServer.Prefixes.Add("http://localhost:50000/");
-        httpServer.StaticFilesPath = Path.Combine(AppContext.BaseDirectory, "InteractiveMap");
-        httpServer.Start();
+        string url = httpServer.Start("localhost", 50000, 60000, Path.Combine(AppContext.BaseDirectory, "InteractiveMap"));
 
-        mapWebView.Source = "http://localhost:50000/";
+        mapWebView.Source = url;
     }
 }

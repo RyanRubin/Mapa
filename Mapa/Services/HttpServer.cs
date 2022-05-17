@@ -14,20 +14,41 @@ public class HttpServer
 
     private CancellationTokenSource cancelSource;
 
-    public List<string> Prefixes { get; set; } = new();
-    public string StaticFilesPath { get; set; }
-
-    public void Start()
+    public string Start(string prefixDomain, int prefixPortMin, int prefixPortMax, string staticFilesPath)
     {
+        bool hasError;
+        int retryCount = 0;
+        var random = new Random();
+        string url;
+        HttpListener listener;
+        do
+        {
+            hasError = false;
+            int port = random.Next(prefixPortMin, prefixPortMax + 1);
+            url = $"http://{prefixDomain}:{port}/";
+            listener = new HttpListener();
+            listener.Prefixes.Add(url);
+            try
+            {
+                listener.Start();
+            }
+            catch (HttpListenerException ex)
+            {
+                if (ex.ErrorCode == 32) // port already used
+                {
+                    hasError = true;
+                    retryCount++;
+                    if (retryCount > 10)
+                    {
+                        throw;
+                    }
+                }
+            }
+        } while (hasError);
+
         cancelSource = new CancellationTokenSource();
         var thread = new Thread(async (obj) =>
         {
-            var listener = new HttpListener();
-            foreach (string prefix in Prefixes)
-            {
-                listener.Prefixes.Add(prefix);
-            }
-            listener.Start();
             var cancelToken = (CancellationToken)obj;
             while (!cancelToken.IsCancellationRequested)
             {
@@ -41,7 +62,7 @@ public class HttpServer
 
                     byte[] outputBuffer = Array.Empty<byte>();
 
-                    string localPath = Path.Combine(StaticFilesPath, requestPath == "" ? "index.html" : requestPath);
+                    string localPath = Path.Combine(staticFilesPath, requestPath == "" ? "index.html" : requestPath);
                     if (File.Exists(localPath))
                     {
                         outputBuffer = File.ReadAllBytes(localPath);
@@ -63,6 +84,8 @@ public class HttpServer
             listener.Stop();
         });
         thread.Start(cancelSource.Token);
+
+        return url;
     }
 
     public void Stop()
