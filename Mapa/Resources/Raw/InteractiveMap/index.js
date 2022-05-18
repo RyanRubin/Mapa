@@ -44,29 +44,11 @@ class App {
             view: this.view
         });
 
-        const popup = new ol.Overlay({
-            element: document.getElementById('popup')
-        });
-        this.map.addOverlay(popup);
-
-        let popover;
         this.map.on('click', (e) => {
-            const popupEl = popup.getElement();
             const coordinate = e.coordinate;
             const hdms = ol.coordinate.toStringHDMS(ol.proj.toLonLat(coordinate));
 
-            if (popover) {
-                popover.dispose();
-            }
-            popup.setPosition(coordinate);
-            popover = new bootstrap.Popover(popupEl, {
-                container: popupEl,
-                placement: 'top',
-                animation: false,
-                html: true,
-                content: `<p>The location you clicked was:</p><code>${hdms}</code>`
-            });
-            popover.show();
+            this.addPopover(coordinate, `<p>The location you clicked was:</p><code>${hdms}</code>`);
         });
 
         const blastCoord = ol.proj.fromLonLat([-81.49559810202766, 41.469741498180625]);
@@ -130,6 +112,26 @@ class App {
         }));
 
         this.vectorSource.addFeature(lineFeature);
+    }
+
+    addPopover(coord, content) {
+        const popoverEl = document.createElement('div');
+        document.body.append(popoverEl);
+
+        const overlay = new ol.Overlay({
+            element: popoverEl,
+            position: coord
+        });
+        this.map.addOverlay(overlay);
+
+        const popover = new bootstrap.Popover(popoverEl, {
+            container: popoverEl,
+            placement: 'top',
+            animation: false,
+            html: true,
+            content: content
+        });
+        popover.show();
     }
 
     fitToFeaturesExtent() {
