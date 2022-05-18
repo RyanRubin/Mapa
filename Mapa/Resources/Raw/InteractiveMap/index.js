@@ -44,13 +44,6 @@ class App {
             view: this.view
         });
 
-        this.map.on('click', (e) => {
-            const coordinate = e.coordinate;
-            const hdms = ol.coordinate.toStringHDMS(ol.proj.toLonLat(coordinate));
-
-            this.addPopover(coordinate, `<p>The location you clicked was:</p><code>${hdms}</code>`);
-        });
-
         const blastCoord = ol.proj.fromLonLat([-81.49559810202766, 41.469741498180625]);
         const npsCoord = ol.proj.fromLonLat([-81.495, 41.469]);
         const seismographCoord = ol.proj.fromLonLat([-81.496, 41.470]);
@@ -65,6 +58,16 @@ class App {
         this.addLine(blastCoord, seismographCoord, 'red');
 
         this.fitToFeaturesExtent();
+
+        let isRendered = false;
+        this.map.on('rendercomplete', () => {
+            if (isRendered) {
+                return;
+            }
+            isRendered = true;
+            this.addPopover(npsCoord, `<code>${ol.coordinate.toStringHDMS(npsCoord)}</code>`);
+            this.addPopover(seismographCoord, `<code>${ol.coordinate.toStringHDMS(seismographCoord)}</code>`);
+        });
     }
 
     addIcon(coord, src) {
@@ -129,7 +132,8 @@ class App {
             placement: 'top',
             animation: false,
             html: true,
-            content: content
+            content: content,
+            trigger: 'manual'
         });
         popover.show();
     }
