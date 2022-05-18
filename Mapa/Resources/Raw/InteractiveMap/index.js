@@ -5,6 +5,7 @@ class App {
     offlineMapsSource;
     vectorLayer;
     vectorSource;
+    view;
 
     initMap() {
         // window.addEventListener('contextmenu', e => e.preventDefault());
@@ -12,7 +13,7 @@ class App {
         this.bingMapsSource = new ol.source.BingMaps({
             key: 'AkGBls_Q10K9PW0jYdc1KuSPiF5qOXXICG3D9F2cT5QWLzdJsVYwgl8JYpnZg8sE',
             imagerySet: 'Aerial',
-            maxZoom: 19,
+            maxZoom: 19, // https://openlayers.org/en/latest/examples/bing-maps.html
             tileLoadFunction: (imageTile, src) => {
                 imageTile.getImage().src = src;
                 // console.log(imageTile.tileCoord);
@@ -35,23 +36,31 @@ class App {
             source: this.vectorSource
         });
 
+        this.view = new ol.View();
+
         this.map = new ol.Map({
             target: 'map',
             layers: [this.tileLayer, this.vectorLayer],
-            view: new ol.View({
-                center: ol.proj.fromLonLat([-81.49559810202766, 41.469741498180625]),
-                zoom: 18
-            })
+            view: this.view
         });
 
-        this.addIcon(this.map.getView().getCenter());
-        this.addCircle(ol.proj.fromLonLat([-81.496, 41.470]), 'red');
-        this.addLine(this.map.getView().getCenter(), ol.proj.fromLonLat([-81.496, 41.470]), 'red');
-        this.addCircle(ol.proj.fromLonLat([-81.495, 41.469]), 'yellow');
-        this.addLine(this.map.getView().getCenter(), ol.proj.fromLonLat([-81.495, 41.469]), 'yellow');
+        const blastCoord = ol.proj.fromLonLat([-81.49559810202766, 41.469741498180625]);
+        const npsCoord = ol.proj.fromLonLat([-81.495, 41.469]);
+        const seismographCoord = ol.proj.fromLonLat([-81.496, 41.470]);
+
+        this.addCircle(blastCoord, 'blue');
+        this.addIcon(blastCoord, 'img/icon.png');
+
+        this.addCircle(npsCoord, 'yellow');
+        this.addLine(blastCoord, npsCoord, 'yellow');
+
+        this.addCircle(seismographCoord, 'red');
+        this.addLine(blastCoord, seismographCoord, 'red');
+
+        this.fitToFeaturesExtent();
     }
 
-    addIcon(coord) {
+    addIcon(coord, src) {
         const iconFeature = new ol.Feature({
             geometry: new ol.geom.Point(coord)
         });
@@ -60,7 +69,7 @@ class App {
                 anchor: [0.5, 46],
                 anchorXUnits: 'fraction',
                 anchorYUnits: 'pixels',
-                src: 'img/icon.png'
+                src: src
             })
         }));
 
@@ -96,6 +105,14 @@ class App {
         }));
 
         this.vectorSource.addFeature(lineFeature);
+    }
+
+    fitToFeaturesExtent() {
+        const vectorExtent = this.vectorSource.getExtent();
+        this.view.fit(vectorExtent, {
+            padding: [25, 25, 25, 25],
+            maxZoom: 19
+        });
     }
 }
 
