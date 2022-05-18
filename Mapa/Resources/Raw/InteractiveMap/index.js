@@ -44,6 +44,28 @@ class App {
             view: this.view
         });
 
+        const popup = new ol.Overlay({
+            element: document.getElementById('popup')
+        });
+        this.map.addOverlay(popup);
+
+        this.map.on('click', (e) => {
+            const popupEl = popup.getElement();
+            const coordinate = e.coordinate;
+            const hdms = ol.coordinate.toStringHDMS(ol.proj.toLonLat(coordinate));
+
+            $(popupEl).popover('dispose');
+            popup.setPosition(coordinate);
+            $(popupEl).popover({
+                container: popupEl,
+                placement: 'top',
+                animation: false,
+                html: true,
+                content: `<p>The location you clicked was:</p><code>${hdms}</code>`
+            });
+            $(popupEl).popover('show');
+        });
+
         const blastCoord = ol.proj.fromLonLat([-81.49559810202766, 41.469741498180625]);
         const npsCoord = ol.proj.fromLonLat([-81.495, 41.469]);
         const seismographCoord = ol.proj.fromLonLat([-81.496, 41.470]);
