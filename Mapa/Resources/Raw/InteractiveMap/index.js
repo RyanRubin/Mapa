@@ -49,21 +49,24 @@ class App {
         });
         this.map.addOverlay(popup);
 
+        let popover;
         this.map.on('click', (e) => {
             const popupEl = popup.getElement();
             const coordinate = e.coordinate;
             const hdms = ol.coordinate.toStringHDMS(ol.proj.toLonLat(coordinate));
 
-            $(popupEl).popover('dispose');
+            if (popover) {
+                popover.dispose();
+            }
             popup.setPosition(coordinate);
-            $(popupEl).popover({
+            popover = new bootstrap.Popover(popupEl, {
                 container: popupEl,
                 placement: 'top',
                 animation: false,
                 html: true,
                 content: `<p>The location you clicked was:</p><code>${hdms}</code>`
             });
-            $(popupEl).popover('show');
+            popover.show();
         });
 
         const blastCoord = ol.proj.fromLonLat([-81.49559810202766, 41.469741498180625]);
