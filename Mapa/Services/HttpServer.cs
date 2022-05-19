@@ -2,7 +2,7 @@
 
 namespace Mapa.Services;
 
-public class HttpServer
+public class HttpServer : IHttpServer
 {
     // add mime types as needed
     private readonly Dictionary<string, string> mimeTypes = new() {
@@ -14,13 +14,18 @@ public class HttpServer
 
     private CancellationTokenSource cancelSource;
 
-    public string Start(string prefixDomain, int prefixPortMin, int prefixPortMax, string staticFilesPath)
+    private bool isRunning;
+    public bool IsRunning { get => isRunning; }
+
+    private string url;
+    public string Url { get => url; }
+
+    public void Start(string prefixDomain, int prefixPortMin, int prefixPortMax, string staticFilesPath)
     {
         bool hasError;
         int retryCount = 0;
         var ports = Enumerable.Range(prefixPortMin, prefixPortMax - prefixPortMin).ToList();
         var random = new Random();
-        string url;
         HttpListener listener;
         do
         {
@@ -34,6 +39,7 @@ public class HttpServer
             try
             {
                 listener.Start();
+                isRunning = true;
             }
             catch (HttpListenerException ex)
             {
@@ -92,10 +98,9 @@ public class HttpServer
             }
 
             listener.Stop();
+            isRunning = false;
         });
         thread.Start(cancelSource.Token);
-
-        return url;
     }
 
     public void Stop()

@@ -4,25 +4,38 @@ namespace Mapa;
 
 public partial class BlastMap : ContentView
 {
-    private string url;
+    private const string BlastColor = "blue";
+    private const string BlastIcon = "img/icon.png";
+    private const string NpsColor = "yellow";
+    private const string SeismographColor = "red";
+
+    private readonly IHttpServer httpServer;
 
     public BlastMap()
     {
         InitializeComponent();
 
-        var httpServer = new HttpServer();
-        url = httpServer.Start("localhost", 50000, 60000, Path.Combine(AppContext.BaseDirectory, "BlastMap"));
+        httpServer = new HttpServer();
 
-        mapWebView.Source = url;
+        if (!httpServer.IsRunning)
+        {
+            const int BlastMapServerPortMin = 50000;
+            const int BlastMapServerPortMax = 60000;
+            const string BlastMapServerStaticFilesPath = "BlastMap";
+            httpServer.Start("localhost", BlastMapServerPortMin, BlastMapServerPortMax, Path.Combine(AppContext.BaseDirectory, BlastMapServerStaticFilesPath));
+        }
+
+        mapWebView.Source = httpServer.Url;
     }
 
     private async void mapWebView_Navigated(object sender, WebNavigatedEventArgs e)
     {
-        if (!string.Equals(e.Url, url, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(e.Url, httpServer.Url, StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
+        // TODO remove dummy data
         decimal blastLat = 41.469741498180625m;
         decimal blastLon = -81.49559810202766m;
         decimal npsLat = 41.469m;
@@ -30,16 +43,16 @@ public partial class BlastMap : ContentView
         decimal seismographLat = 41.470m;
         decimal seismographLon = -81.496m;
 
-        await mapWebView.EvaluateJavaScriptAsync($"app.addCircle({blastLat}, {blastLon}, 'blue')");
-        await mapWebView.EvaluateJavaScriptAsync($"app.addIcon({blastLat}, {blastLon}, 'img/icon.png')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addCircle({blastLat}, {blastLon}, '{BlastColor}')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addIcon({blastLat}, {blastLon}, '{BlastIcon}')");
 
-        await mapWebView.EvaluateJavaScriptAsync($"app.addCircle({npsLat}, {npsLon}, 'yellow')");
-        await mapWebView.EvaluateJavaScriptAsync($"app.addPopover({npsLat}, {npsLon}, 'yellow')");
-        await mapWebView.EvaluateJavaScriptAsync($"app.addLine({blastLat}, {blastLon}, {npsLat}, {npsLon}, 'yellow')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addCircle({npsLat}, {npsLon}, '{NpsColor}')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addPopover({npsLat}, {npsLon}, '{NpsColor}')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addLine({blastLat}, {blastLon}, {npsLat}, {npsLon}, '{NpsColor}')");
 
-        await mapWebView.EvaluateJavaScriptAsync($"app.addCircle({seismographLat}, {seismographLon}, 'red')");
-        await mapWebView.EvaluateJavaScriptAsync($"app.addPopover({seismographLat}, {seismographLon}, 'red')");
-        await mapWebView.EvaluateJavaScriptAsync($"app.addLine({blastLat}, {blastLon}, {seismographLat}, {seismographLon}, 'red')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addCircle({seismographLat}, {seismographLon}, '{SeismographColor}')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addPopover({seismographLat}, {seismographLon}, '{SeismographColor}')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addLine({blastLat}, {blastLon}, {seismographLat}, {seismographLon}, '{SeismographColor}')");
 
         await mapWebView.EvaluateJavaScriptAsync("app.fitToFeaturesExtent()");
     }
