@@ -16,7 +16,7 @@ public partial class BlastMap : ContentView
         mapWebView.Source = url;
     }
 
-    private void mapWebView_Navigated(object sender, WebNavigatedEventArgs e)
+    private async void mapWebView_Navigated(object sender, WebNavigatedEventArgs e)
     {
         if (!string.Equals(e.Url, url, StringComparison.OrdinalIgnoreCase))
         {
@@ -30,17 +30,17 @@ public partial class BlastMap : ContentView
         decimal seismographLat = 41.470m;
         decimal seismographLon = -81.496m;
 
-        mapWebView.EvaluateJavaScriptAsync($"app.addCircle({blastLat}, {blastLon}, 'blue')");
-        mapWebView.EvaluateJavaScriptAsync($"app.addIcon({blastLat}, {blastLon}, 'img/icon.png')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addCircle({blastLat}, {blastLon}, 'blue')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addIcon({blastLat}, {blastLon}, 'img/icon.png')");
 
-        mapWebView.EvaluateJavaScriptAsync($"app.addCircle({npsLat}, {npsLon}, 'yellow')");
-        mapWebView.EvaluateJavaScriptAsync($"app.addPopover({npsLat}, {npsLon}, 'yellow')");
-        mapWebView.EvaluateJavaScriptAsync($"app.addLine({blastLat}, {blastLon}, {npsLat}, {npsLon}, 'yellow')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addCircle({npsLat}, {npsLon}, 'yellow')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addPopover({npsLat}, {npsLon}, 'yellow')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addLine({blastLat}, {blastLon}, {npsLat}, {npsLon}, 'yellow')");
 
-        mapWebView.EvaluateJavaScriptAsync($"app.addCircle({seismographLat}, {seismographLon}, 'red')");
-        mapWebView.EvaluateJavaScriptAsync($"app.addPopover({seismographLat}, {seismographLon}, 'red')");
-        mapWebView.EvaluateJavaScriptAsync($"app.addLine({blastLat}, {blastLon}, {seismographLat}, {seismographLon}, 'red')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addCircle({seismographLat}, {seismographLon}, 'red')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addPopover({seismographLat}, {seismographLon}, 'red')");
+        await mapWebView.EvaluateJavaScriptAsync($"app.addLine({blastLat}, {blastLon}, {seismographLat}, {seismographLon}, 'red')");
 
-        mapWebView.EvaluateJavaScriptAsync("app.fitToFeaturesExtent()");
+        await mapWebView.EvaluateJavaScriptAsync("app.fitToFeaturesExtent()");
     }
 }
