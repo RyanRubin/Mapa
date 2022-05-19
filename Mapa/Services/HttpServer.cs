@@ -18,13 +18,16 @@ public class HttpServer
     {
         bool hasError;
         int retryCount = 0;
+        var ports = Enumerable.Range(prefixPortMin, prefixPortMax - prefixPortMin).ToList();
         var random = new Random();
         string url;
         HttpListener listener;
         do
         {
             hasError = false;
-            int port = random.Next(prefixPortMin, prefixPortMax + 1);
+            int portIndex = random.Next(0, ports.Count);
+            int port = ports[portIndex];
+            ports.RemoveAt(portIndex);
             url = $"http://{prefixDomain}:{port}/";
             listener = new HttpListener();
             listener.Prefixes.Add(url);
@@ -38,7 +41,7 @@ public class HttpServer
                 {
                     hasError = true;
                     retryCount++;
-                    if (retryCount > 10)
+                    if (retryCount > 10 || ports.Count == 0)
                     {
                         throw;
                     }
@@ -62,18 +65,25 @@ public class HttpServer
 
                     byte[] outputBuffer = Array.Empty<byte>();
 
-                    string localPath = Path.Combine(staticFilesPath, requestPath == "" ? "index.html" : requestPath);
-                    if (File.Exists(localPath))
+                    if (string.Equals(request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
                     {
-                        outputBuffer = File.ReadAllBytes(localPath);
+                        string localPath = Path.Combine(staticFilesPath, requestPath == "" ? "index.html" : requestPath);
+                        if (File.Exists(localPath))
+                        {
+                            outputBuffer = File.ReadAllBytes(localPath);
 
-                        response.ContentLength64 = outputBuffer.Length;
-                        response.ContentType = mimeTypes[Path.GetExtension(localPath).TrimStart('.')];
-                        response.StatusCode = 200;
+                            response.ContentLength64 = outputBuffer.Length;
+                            response.ContentType = mimeTypes[Path.GetExtension(localPath).TrimStart('.')];
+                            response.StatusCode = 200;
+                        }
+                        else
+                        {
+                            response.StatusCode = 404;
+                        }
                     }
                     else
                     {
-                        response.StatusCode = 404;
+                        response.StatusCode = 405; // method not allowed
                     }
 
                     using var outputStream = response.OutputStream;

@@ -49,11 +49,17 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Resources\Raw\InteractiveMap\" />
+	  <Folder Include="Resources\Raw\BlastMap\" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="InteractiveMap.xaml">
+	  <Compile Update="BlastMap.xaml.cs">
+	    <DependentUpon>BlastMap.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="BlastMap.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

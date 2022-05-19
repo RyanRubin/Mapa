@@ -6,7 +6,7 @@
 			 
     <ScrollView>
         <Grid RowDefinitions="450,40">
-            <common:InteractiveMap Grid.Row="0"/>
+            <common:BlastMap Grid.Row="0"/>
             <HorizontalStackLayout Grid.Row="1">
                 <Button Text="Button 1"/>
                 <Button Text="Button 2"/>
