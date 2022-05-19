@@ -6,6 +6,7 @@ class App {
     vectorLayer;
     vectorSource;
     view;
+    isRendered;
 
     initMap() {
         // window.addEventListener('contextmenu', e => e.preventDefault());
@@ -44,35 +45,14 @@ class App {
             view: this.view
         });
 
-        const blastCoord = ol.proj.fromLonLat([-81.49559810202766, 41.469741498180625]);
-        const npsCoord = ol.proj.fromLonLat([-81.495, 41.469]);
-        const seismographCoord = ol.proj.fromLonLat([-81.496, 41.470]);
-
-        this.addCircle(blastCoord, 'blue');
-        this.addIcon(blastCoord, 'img/icon.png');
-
-        this.addCircle(npsCoord, 'yellow');
-        this.addLine(blastCoord, npsCoord, 'yellow');
-
-        this.addCircle(seismographCoord, 'red');
-        this.addLine(blastCoord, seismographCoord, 'red');
-
-        this.fitToFeaturesExtent();
-
-        let isRendered = false;
-        this.map.on('rendercomplete', () => {
-            if (isRendered) {
-                return;
-            }
-            isRendered = true;
-            this.addPopover(npsCoord, `<code>${ol.coordinate.toStringHDMS(npsCoord)}</code>`);
-            this.addPopover(seismographCoord, `<code>${ol.coordinate.toStringHDMS(seismographCoord)}</code>`);
+        this.map.once('rendercomplete', () => {
+            this.isRendered = true;
         });
     }
 
-    addIcon(coord, src) {
+    addIcon(lat, lon, src) {
         const iconFeature = new ol.Feature({
-            geometry: new ol.geom.Point(coord)
+            geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
         });
         iconFeature.setStyle(new ol.style.Style({
             image: new ol.style.Icon({
@@ -86,9 +66,9 @@ class App {
         this.vectorSource.addFeature(iconFeature);
     }
 
-    addCircle(coord, color) {
+    addCircle(lat, lon, color) {
         const circleFeature = new ol.Feature({
-            geometry: new ol.geom.Point(coord)
+            geometry: new ol.geom.Point(ol.proj.fromLonLat([lon, lat]))
         });
         circleFeature.setStyle(new ol.style.Style({
             image: new ol.style.Circle({
@@ -102,9 +82,9 @@ class App {
         this.vectorSource.addFeature(circleFeature);
     }
 
-    addLine(coord1, coord2, color) {
+    addLine(lat1, lon1, lat2, lon2, color) {
         const lineFeature = new ol.Feature({
-            geometry: new ol.geom.LineString([coord1, coord2])
+            geometry: new ol.geom.LineString([ol.proj.fromLonLat([lon1, lat1]), ol.proj.fromLonLat([lon2, lat2])])
         });
         lineFeature.setStyle(new ol.style.Style({
             stroke: new ol.style.Stroke({
@@ -117,25 +97,34 @@ class App {
         this.vectorSource.addFeature(lineFeature);
     }
 
-    addPopover(coord, content) {
-        const popoverEl = document.createElement('div');
-        document.body.append(popoverEl);
+    addPopover(lat, lon, content) {
+        const add = () => {
+            const popoverEl = document.createElement('div');
+            document.body.append(popoverEl);
 
-        const overlay = new ol.Overlay({
-            element: popoverEl,
-            position: coord
-        });
-        this.map.addOverlay(overlay);
+            const overlay = new ol.Overlay({
+                element: popoverEl,
+                position: ol.proj.fromLonLat([lon, lat])
+            });
+            this.map.addOverlay(overlay);
 
-        const popover = new bootstrap.Popover(popoverEl, {
-            container: popoverEl,
-            placement: 'top',
-            animation: false,
-            html: true,
-            content: content,
-            trigger: 'manual'
-        });
-        popover.show();
+            const popover = new bootstrap.Popover(popoverEl, {
+                container: popoverEl,
+                placement: 'top',
+                animation: false,
+                html: true,
+                content: content,
+                trigger: 'manual'
+            });
+            popover.show();
+        };
+        if (this.isRendered) {
+            add();
+        } else {
+            this.map.once('rendercomplete', () => {
+                add();
+            });
+        }
     }
 
     fitToFeaturesExtent() {
